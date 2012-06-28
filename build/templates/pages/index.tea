@@ -1,0 +1,329 @@
+Template index { 
+% extends "layout";
+% block content {
+section {
+    table {
+        tr {
+            td[style="padding-right:16px"] {
+                h1 CSS templates for JavaScript;
+                p TeaCSS extends CSS with dynamic behaviour of JavaScript.;
+                p It offers features similar to LESS.js or SASS such as variables, mixins and functions.;
+                p But it is;
+                ul {
+                    li Easier to debug (because TeaCSS compiles to line-to-line Javascript),;
+                    li Faster to compile (very simple single pass parser that is less than 300 lines of code), 
+                       supports any current and future CSS-rules,;
+                    li Bundles with own framework - donut;
+                    li Has a number of extensions to simplify development process - ui, canvas;
+                    li Can be used as build system also (some kind of Makefile but for browser);
+                    li If used as build system can produce JS and CSS files for your web application;
+                }
+                p { a.button[href="https://github.com/boomyjee/teacss/zipball/master"] Download TeaCSS }
+            }
+    
+            td {
+              h3 Write some tea-style:;
+              Highlight teacss {
+                .box_shadow(x,y,blur,alpha) {
+                  @ color = 'rgba(0,0,0,'+alpha+')'
+                  box-shadow: @color @x @y @blur;
+                  -webkit-box-shadow: @color @x @y @blur;
+                  -moz-box-shadow: @color @x @y @blur;
+                }
+                .box {
+                  @ base = '#f938ab';
+                  @ border_color = lighten(base, 30);
+                  color: @{saturate(base, 5)};
+                  div {
+                    .box_shadow(0, 0, '5px', 0.4);
+                    border: 1px @border_color solid;
+                  }
+                }
+              }
+            }
+        }
+    }
+    h3 Include teacss.js with your styles:;
+    Highlight xml {
+      <link tea="style.tea">
+      <script src="teacss.js"></script>
+    }
+}
+section {
+    h1 Overview;
+    p Tea is not a new language. It is a CSS preprocessor, it just adds Javascript embedding 
+      (with some syntaxic sugar) and rule nesting. So all the power of Tea is the power of Javascript.;
+
+    h1 Javascript embedding;
+    p You have four choices of embedding JS.;
+    ol {
+        li {
+            Simple inline. Used to evaluate single Javascript variable.;
+            Highlight teacss {
+              body { 
+                color: @color; 
+              }
+            }
+        }
+
+        li {
+            Complex inline. For complex expressions.;
+            Highlight teacss {
+              body {
+                color: @{lighten(color,5+x*3)};
+              }
+            }
+        }
+    
+        li {
+            Single line block;
+            Highlight teacss {
+              body {
+                @ var color = lighten(other_color,25); 
+                @ var border_big = add_border(border_small,'5px');
+              }
+            }
+        }
+    
+        li {
+            Multiline block. Allows you to run lots of JS inside template.;
+            Highlight teacss {
+              body {
+                @{
+                  var color = lighten(other_color,25);
+                  if (lightness(color)>25)
+                    border_big = add_border(border_small,'5px');
+                }
+              }
+            }
+        }        
+    }
+
+
+
+    p Every css rule is getting transformed to JS function call. So contexts and variable 
+      visibility as similar to JS. Here is an example TeaCode and its JS variant:;
+    table {
+        tr {
+            td {
+                Highlight teacss {
+                    body {
+                      @ var color = 'red';
+                      background: @color;
+                      h2 {
+                        font-weight: bold;
+                      }
+                    }
+                }
+            }
+            td {
+                Highlight javascript {
+                    tea.rule("body",function(){
+                      var color = 'red';
+                      tea.rule("background: "+color+";")
+                      tea.rule("h2",function(){
+                        tea.rule("font-weight: bold;")
+                      })
+                    })
+                }
+            }
+        }
+    }
+
+
+    h2 Variables;
+    p You can use variables like in LESS or SASS but in Tea they are just JS variables, 
+      with no hidden caveats and additionary types for colors or dimensions.;
+    p So you can type:;
+    table {
+        tr {
+            td {
+                Highlight teacss {
+                    /* TeaCSS */
+                    @ var color = '#4D926F';
+                    #header {
+                      color: @color;
+                    }
+                    h2 {
+                      color: @color;
+                    }                    
+                }
+            }
+            td {
+                Highlight css {
+                    /* Compiled CSS */
+                    #header {
+                      color: #4D926F;
+                    }
+                    h2 {
+                      color: #4D926F;
+                    }
+                }
+            }
+        }
+    }
+
+
+    h2 Mixins in Tea are just JS functions.;
+    p Plain CSS rules are functions that are executed right in place.;
+    table {
+        tr {
+            td {
+                Highlight teacss {
+                    body {
+                      color: red;
+                    }
+                }
+            }
+            td {
+                Highlight javascript {
+                    tea.rule('body',function(){
+                      tea.rule('color:red')
+                    }
+                }
+            }
+        }
+    }    
+
+    p adds 'color:red' to rule stack.;
+    p And mixin is function for later use.;
+
+    table {
+        tr {
+            td {
+                Highlight teacss {
+                    .my_mixin(color) {
+                      color: @color;
+                    }
+                }
+            }
+            td {
+                Highlight javascript {
+                    my_mixin = function(color){
+                      tea.print('color: '+color);
+                    }
+                }
+            }
+        }
+    }     
+
+    p adds nothing to rule stack, but declares JS functions that can be used in plain rule.
+    p You can call mixins as functions or using alternative syntax. So:
+
+    table {
+        tr {
+            td {
+                Highlight teacss {
+                    body {
+                      .my_mixin('red');
+                    }
+                }
+            }
+            td {
+                Highlight teacss {
+                    body {
+                      @ my_mixin('red')
+                    }
+                }
+            }
+        }
+    }     
+
+    p are equivalent and produce
+    Highlight css {
+      body {
+        color: red;
+      }
+    }
+
+    p As javascript does not support default parameters Tea CSS does neither. 
+      You can implement them in JS as usual.;
+    Highlight teacss {
+      .my_mixin(color) {
+        @ color = color || 'blue'
+        color: @color;
+      }
+    }
+
+    p Of course, you can define functions as object members.;
+    Highlight teacss {
+      @ my_namespace = {}
+      .my_namespace.my_mixin(color) {}
+    }
+
+    h2 Nested rules;
+    p Rather than constructing long selector names to specify inheritance, 
+      in TeaCSS you can simply nest selectors inside other selectors. 
+      This makes inheritance clear and style sheets shorter.
+
+    table {
+        tr {
+            td {
+                Highlight teacss {
+                    /* TeaCSS */
+                    #header {
+                      h1 {
+                        font-size: 26px;
+                        font-weight: bold;
+                      }
+                      p { font-size: 12px;
+                        a { text-decoration: none;
+                          &:hover { border-width: 1px }
+                        }
+                      }
+                    }
+                }
+            }
+            td {
+                Highlight css {
+                    /* Compiled CSS */
+                    #header h1 {
+                      font-size: 26px;
+                      font-weight: bold;
+                    }
+                    #header p {
+                      font-size: 12px;
+                    }
+                    #header p a {
+                      text-decoration: none;
+                    }
+                    #header p a:hover {
+                      border-width: 1px;
+                    }
+                }
+            }
+        }
+    }    
+}
+section {
+    h2 Usage;
+    h3 Client-side;
+    p Link your .tea stylesheets with the rel set to “stylesheet/tea”:;
+    Highlight xml {
+        <link tea="style.tea">
+    }
+    p Then download teacss.js from the top of the page, 
+      and include it in the <head> element of your page, like so:;
+    Highlight xml {
+        <script src="teacss.js"></script>
+    }
+    p Make sure you include your stylesheets before the script.;
+
+    h3 Server side;
+    p TeaCSS does not handle saving css to server but simplifies process a lot.;
+    p You can add code like this to you development version of page:;
+    
+    Highlight php {
+        <script>
+          teacss.buildCallback(function(files){
+            $.ajax({ type:'POST', url: location.href, data: {css:files['\default.css']}  });
+          });
+        </script>
+        <? if (isset($_POST['css']) file_put_contents('path/style.css', $_POST['css']) ?>
+    }
+    
+    p Then for every tea link in page you will see an overlay ui that helps you to build all your styles.;
+}
+
+}
+}

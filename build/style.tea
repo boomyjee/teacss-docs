@@ -1,0 +1,90 @@
+@append "scopes/lib/codemirror/theme/default.css";
+@append "scopes/lib/codemirror/mode/teacss/teacss.css";
+
+@import "/apps/boomyjee/teacss/public/tools/donut/donut.tea";
+
+.normalize();
+
+body {
+    background: url('../assets/images/background.png') 50% 0;
+}
+
+#canvas_live #teacss-ui > div {
+    text-align: center !important;
+}
+
+#header {
+    position: fixed;
+    left: 0;
+    right: 0;
+
+    div {
+        margin: 0px auto 0;
+        padding: 10px 60px;
+        width: 900px;
+        .border_radius('0 0 20px 20px');
+        background: #333;
+        border: 2px dashed #aaa;
+        border-top: none;
+        z-index: 100000;
+        position: relative;
+        a {
+            color: white;
+            margin-right: 30px;
+            &:hover {
+                text-decoration: none;
+            }
+            &.active {
+                color: #ff0;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+pre {
+    display: block;
+    background: #f3f3f3;
+    padding: 0 16px;
+    overflow: hidden;
+    border: 2px dashed #faa;
+    .border_radius('10px');
+}
+
+#content {
+    width: 900px;
+    margin: 0px auto 0;
+    background: white;
+    padding: 40px 16px 0px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    td {
+        vertical-align: top;
+        width: 50%;
+    }
+}
+
+li {
+    code {
+        margin-top: 6px;
+        margin-bottom: 10px;
+    }
+}
+
+a.button {
+    display: block;
+    border: 1px solid #900;
+    background: #500;
+    width: 300px;
+    font-weight: bold;
+    color: white;
+    height: 1.5em;
+    line-height: 1.5em;
+    text-decoration: none;
+    text-align: center;
+    .border_radius('10px');
+    .button();
+}

@@ -1,0 +1,30 @@
+Template layout {
+    html {
+        head {
+            meta[http-equiv="Content-Type"][content="text/html; charset=utf-8"];
+            title TeaCSS;
+            Style;
+            % block header {}
+        }
+        body {
+            #header {
+                .item(url,text) { 
+                    % if path == "@{url}" {
+                        a.active[href="@{url}"] @text;    
+                    }
+                    % else {
+                        a[href="@{url}"] @text;    
+                    }
+                }
+                div {
+                    .item('index.htm','Intro');
+                    .item('canvas.htm','Canvas');
+                    a[href="https://github.com/boomyjee/teacss/zipball/master"][target="_blank"] Download;
+                }
+            }
+            #content {
+                % block content {}
+            }
+        }
+    }
+}

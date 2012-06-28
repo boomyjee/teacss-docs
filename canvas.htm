@@ -1,0 +1,32 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta><title>TeaCSS</title><link rel='stylesheet' type='text/css' href='assets/style.css'><link tea="assets/canvas_demo.tea"><script src="assets/teacss/teacss.js"></script></head><body><div id="header"><div><a href="index.htm">Intro</a><a class="active" href="canvas.htm">Canvas</a><a href="https://github.com/boomyjee/teacss/zipball/master" target="_blank">Download</a></div></div><div id="content"><section><table><tr><td style="padding-right:16px"><h1>Canvas module</h1><p>Canvas module is for image manipulation purposes.</p><p>You can generate image for your styles on fly. It gives you unlimited
+possibilities to create graphics that matches your theme colors or styles.
+And it is all inside you *.tea file.</p><p>teacss.Canvas is javascript api for image creation and adjustment. 
+It has no dependecies with <b>teacss.core</b>, but is inteded to be used inside tea files.</p><h3>Under the hood</h3><ul><li>teacss.Canvas relies on HTML5 Canvas, so it will work only with Canvas-enabled browsers.</li><li>Library uses both 'webgl' and '2d' contexts with seamless switching between the two.</li><li>Canvas functions work in a different way when <b>teacss.build</b> is used.
+You can save created or altered images to disk if needed for production use.
+li As HTML5 canvas and webgl available only in browser you have to fire build event from client side.</li><li>TeaCSS comes bundled with several server backend versions. 
+But it is very easy to write an own one.
+The only thing needed - is to get data from browser and save it to disk. Already compiled and minified.</li></ul></td><td><h3>Simple example</h3><pre class='cm-s-default'><span></span><span class='cm-rule'>var canvas = new Canvas(</span><span class='cm-string'>'foo.jpg'</span><span class='cm-rule'>)</span><span>
+</span><span class='cm-rule'>    </span><span class='cm-def'>.brightnessContrast</span><span class='cm-rule'>(10,20)</span><span>
+</span><span class='cm-rule'>    </span><span class='cm-def'>.multiplyColor</span><span class='cm-rule'>(</span><span class='cm-string'>'red'</span><span class='cm-rule'>)</span><span>
+</span><span class='cm-rule'>    </span><span class='cm-def'>.draw2D</span><span class='cm-rule'>(function(ctx,c2d) </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>        </span><span></span><span class='cm-rule'>ctx.strokeWidth = 5</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>        </span><span></span><span class='cm-rule'>ctx.moveTo(0,0)</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>        </span><span></span><span class='cm-rule'>ctx.lineTo(c2d.width,c2d.height)</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>    </span><span class='cm-scope_end'>}</span><span></span><span class='cm-rule'>)</span><span>
+</span><span class='cm-rule'>canvas</span><span class='cm-def'>.background</span><span class='cm-rule'>(</span><span class='cm-string'>'foo_bg.png'</span><span class='cm-rule'>)</span><span></span><span class='cm-nop'>;</span><span>
+</span></pre><p>Code is pretty self-explanatory. First, we load 'foo.jpg' adjust brightness 
+and contrast, then colorize it with red and later add some drawings on top.</p><p>Then we use it as element background and point that we want to save 
+that image as 'foo_bg.png' if we are in production.</p></td></tr></table><h2>Live sample (simple background generator), FF & Chrome only</h2><table><tr><td style="padding-right:18px;width:55%;"><p>Use colorpickers on the right to generate background image.</p><p>You can review the full code behind the link (with <b>teacss.ui</b> code):<a href="assets/canvas_demo.tea" target="_blank">canvas_demo.tea</a></p><p>And here is all the tea code needed for this sample.</p><pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_block_start'>@{</span><span>
+    </span><span class='cm-comment'>// pretty clear here, huh?</span><span>
+    </span><span class='cm-keyword'>var</span><span> </span><span class='cm-variable'>canvas</span><span> = </span><span class='cm-keyword'>new</span><span> </span><span class='cm-variable'>Canvas</span><span>(</span><span class='cm-string'>&quot;src.png&quot;</span><span>);
+    </span><span class='cm-variable'>canvas</span><span>.</span><span class='cm-property'>replaceColors</span><span>( {
+        </span><span class='cm-string'>'#ffae00'</span><span>:</span><span class='cm-variable'>picker1</span><span>.</span><span class='cm-property'>value</span><span>,
+        </span><span class='cm-string'>'#f7e7ba'</span><span>:</span><span class='cm-variable'>lighten</span><span>(</span><span class='cm-variable'>picker1</span><span>.</span><span class='cm-property'>value</span><span>,</span><span class='cm-number'>30</span><span>),
+        </span><span class='cm-string'>'#705551'</span><span>:</span><span class='cm-variable'>picker2</span><span>.</span><span class='cm-property'>value</span><span>
+    });
+    </span><span class='cm-comment'>// display</span><span>
+    </span><span class='cm-variable'>canvas</span><span>.</span><span class='cm-property'>background</span><span>(</span><span class='cm-string'>'bg.png'</span><span>);
+</span><span class='cm-js_block_end'>  }</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td><td><div id="canvas_live"><h3>Sorry, no Opera and no IE for this sample. WebGL has to be enabled.</h3></div></td></tr></table></section><section id="canvas_display"></section></div></body></html>

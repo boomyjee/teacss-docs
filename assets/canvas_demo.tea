@@ -1,0 +1,83 @@
+@append "teacss/teacss-ui.css";
+
+Script {
+    @append "teacss/teacss-ui.js";
+    @append {
+        // we create ui only first time
+        if (!window.canvas_live_flag) {
+            window.canvas_live_flag = true;
+        
+            // parameters common for all colorpickers
+            var common = {flat:true,width:355,height:177,change:teacss.update,margin:'5px 0 0 0'};
+    
+            // save current file path for build function in button click handler
+            var path = "assets/canvas_demo.tea";
+            var ui = teacss.ui;
+            var $ = teacss.jQuery;
+    
+            // create ui panel with button and pickers
+            window.canvas_live = ui.panel({
+                width: '100%',
+                height: 420,
+                items: [
+                    ui.button({label:'Show compiled css and image data',
+                        click:function(){
+                            // we use callback because browser needs to preload images first
+                            teacss.build(path,{
+                                callback : function(files){
+                                    var img = files['/bg.png'];
+                                    var css = "";
+                                    var that = teacss.tea.Style;
+                                    for (var i=0;i<that.rules.length;i++) css += that.rules[i].getOutput();                            
+            
+                                    // display all the data
+                                    $("#canvas_display").html("")
+                                        .append(
+                                            "<h3>CSS</h3>",     "<code><pre>"+css+"</pre></code>",
+                                            "<h3>Image</h3>",   "<img src='"+img+"'>",
+                                            "<h3>Base64</h3>", "<code><pre>"+img+"</pre></code>"
+                                        );
+                                    $("html,body").animate({ scrollTop: $(document).height() }, "slow");
+                                }
+                            })
+                        }
+                    }),
+    
+                    // pickers
+                    window.picker1 = ui.colorPicker($.extend(common,{value:"#77aeff"})),
+                    window.picker2 = ui.colorPicker($.extend(common,{value:"#705551"}))
+                ]
+            });
+    
+            // some hack to embed #teacss-ui layer into the page
+            // though it's an easy one
+            $(function(){
+                $("<div id='teacss-layer'>")
+                    .addClass("teacss-ui")
+                    .css({display:'block',position:'static',width:'auto'})
+                    .appendTo($("#canvas_live"));
+                $(canvas_live.element).appendTo($("#teacss-layer"));
+                teacss.update();
+            })
+        }
+    }
+}
+
+
+@ teacss.debugRuntime = false;
+body {
+    @{
+        // pretty clear here, huh?
+        var canvas = new Canvas(tea.dir+"images/background.png");
+        if (canvas && canvas.gl && window.picker1) {
+            canvas.replaceColors({
+                '#ffae00':picker1.value,
+                '#f7e7ba':lighten(picker1.value,30),
+                '#705551':picker2.value
+            });
+            // display
+            canvas.background('bg.png');
+            canvas.destroy();
+        }
+    }
+}

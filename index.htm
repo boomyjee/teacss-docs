@@ -1,0 +1,134 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta><title>TeaCSS</title><link rel='stylesheet' type='text/css' href='assets/style.css'></head><body><div id="header"><div><a class="active" href="index.htm">Intro</a><a href="canvas.htm">Canvas</a><a href="https://github.com/boomyjee/teacss/zipball/master" target="_blank">Download</a></div></div><div id="content"><section><table><tr><td style="padding-right:16px"><h1>CSS templates for JavaScript</h1><p>TeaCSS extends CSS with dynamic behaviour of JavaScript.</p><p>It offers features similar to LESS.js or SASS such as variables, mixins and functions.</p><p>But it is</p><ul><li>Easier to debug (because TeaCSS compiles to line-to-line Javascript),</li><li>Faster to compile (very simple single pass parser that is less than 300 lines of code), 
+supports any current and future CSS-rules,</li><li>Bundles with own framework - donut</li><li>Has a number of extensions to simplify development process - ui, canvas</li><li>Can be used as build system also (some kind of Makefile but for browser)</li><li>If used as build system can produce JS and CSS files for your web application</li></ul><p><a class="button" href="https://github.com/boomyjee/teacss/zipball/master">Download TeaCSS</a></p></td><td><h3>Write some tea-style:</h3><pre class='cm-s-default'><span></span><span class='cm-def'>.box_shadow</span><span class='cm-rule'>(x,y,blur,alpha) </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-variable'>color</span><span> = </span><span class='cm-string'>'rgba(0,0,0,'</span><span>+</span><span class='cm-variable'>alpha</span><span>+</span><span class='cm-string'>')'</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>box-shadow: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>x</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>y</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>blur</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>-webkit-box-shadow: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>x</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>y</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>blur</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>-moz-box-shadow: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>x</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>y</span><span class='cm-rule'> </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>blur</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-def'>.box</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-variable'>base</span><span> = </span><span class='cm-string'>'#f938ab'</span><span>;
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-variable'>border_color</span><span> = </span><span class='cm-variable'>lighten</span><span>(</span><span class='cm-variable'>base</span><span>, </span><span class='cm-number'>30</span><span>);
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_block'>@{</span><span class='cm-variable'>saturate</span><span>(</span><span class='cm-variable'>base</span><span>, </span><span class='cm-number'>5</span><span>)</span><span class='cm-js_block_end'>}</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-keyword'>div</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>    </span><span></span><span class='cm-rule'>.box_shadow(0, 0, </span><span class='cm-string'>'5px'</span><span class='cm-rule'>, 0.4)</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>    </span><span></span><span class='cm-rule'>border: 1px </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>border_color</span><span class='cm-rule'> solid</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td></tr></table><h3>Include teacss.js with your styles:</h3><pre class='cm-s-default'><span class='cm-tag'>&lt;link</span><span> </span><span class='cm-attribute'>tea</span><span>=</span><span class='cm-string'>&quot;style.tea&quot;</span><span class='cm-tag'>&gt;</span><span>
+</span><span class='cm-tag'>&lt;script</span><span> </span><span class='cm-attribute'>src</span><span>=</span><span class='cm-string'>&quot;teacss.js&quot;</span><span class='cm-tag'>&gt;&lt;/script&gt;</span><span>
+</span></pre></section><section><h1>Overview</h1><p>Tea is not a new language. It is a CSS preprocessor, it just adds Javascript embedding 
+(with some syntaxic sugar) and rule nesting. So all the power of Tea is the power of Javascript.</p><h1>Javascript embedding</h1><p>You have four choices of embedding JS.</p><ol><li>Simple inline. Used to evaluate single Javascript variable.<pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span class='cm-blank'> </span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span></span><span class='cm-nop'>;</span><span class='cm-blank'> </span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></li><li>Complex inline. For complex expressions.<pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_block'>@{</span><span class='cm-variable'>lighten</span><span>(</span><span class='cm-variable'>color</span><span>,</span><span class='cm-number'>5</span><span>+</span><span class='cm-variable'>x</span><span>*</span><span class='cm-number'>3</span><span>)</span><span class='cm-js_block_end'>}</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></li><li>Single line block<pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-keyword'>var</span><span> </span><span class='cm-variable'>color</span><span> = </span><span class='cm-variable'>lighten</span><span>(</span><span class='cm-variable'>other_color</span><span>,</span><span class='cm-number'>25</span><span>); 
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-keyword'>var</span><span> </span><span class='cm-variable'>border_big</span><span> = </span><span class='cm-variable'>add_border</span><span>(</span><span class='cm-variable'>border_small</span><span>,</span><span class='cm-string'>'5px'</span><span>);
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></li><li>Multiline block. Allows you to run lots of JS inside template.<pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_block_start'>@{</span><span>
+    </span><span class='cm-keyword'>var</span><span> </span><span class='cm-variable'>color</span><span> = </span><span class='cm-variable'>lighten</span><span>(</span><span class='cm-variable'>other_color</span><span>,</span><span class='cm-number'>25</span><span>);
+    </span><span class='cm-keyword'>if</span><span> (</span><span class='cm-variable'>lightness</span><span>(</span><span class='cm-variable'>color</span><span>)&gt;</span><span class='cm-number'>25</span><span>)
+      </span><span class='cm-variable'>border_big</span><span> = </span><span class='cm-variable'>add_border</span><span>(</span><span class='cm-variable'>border_small</span><span>,</span><span class='cm-string'>'5px'</span><span>);
+</span><span class='cm-js_block_end'>  }</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></li></ol><p>Every css rule is getting transformed to JS function call. So contexts and variable 
+visibility as similar to JS. Here is an example TeaCode and its JS variant:</p><table><tr><td><pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-keyword'>var</span><span> </span><span class='cm-variable'>color</span><span> = </span><span class='cm-string'>'red'</span><span>;
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>background: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-keyword'>h2</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>    </span><span></span><span class='cm-rule'>font-weight: bold</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td><td><pre class='cm-s-default'><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>rule</span><span>(</span><span class='cm-string'>&quot;body&quot;</span><span>,</span><span class='cm-keyword'>function</span><span>(){
+  </span><span class='cm-keyword'>var</span><span> </span><span class='cm-def'>color</span><span> = </span><span class='cm-string'>'red'</span><span>;
+  </span><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>rule</span><span>(</span><span class='cm-string'>&quot;background: &quot;</span><span>+</span><span class='cm-variable-2'>color</span><span>+</span><span class='cm-string'>&quot;;&quot;</span><span>)
+  </span><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>rule</span><span>(</span><span class='cm-string'>&quot;h2&quot;</span><span>,</span><span class='cm-keyword'>function</span><span>(){
+    </span><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>rule</span><span>(</span><span class='cm-string'>&quot;font-weight: bold;&quot;</span><span>)
+  })
+})
+</span></pre></td></tr></table><h2>Variables</h2><p>You can use variables like in LESS or SASS but in Tea they are just JS variables, 
+with no hidden caveats and additionary types for colors or dimensions.</p><p>So you can type:</p><table><tr><td><pre class='cm-s-default'><span class='cm-comment'>/* TeaCSS */</span><span>
+</span><span class='cm-js_line_start'>@ </span><span class='cm-keyword'>var</span><span> </span><span class='cm-variable'>color</span><span> = </span><span class='cm-string'>'#4D926F'</span><span>;
+</span><span class='cm-atom'>#header</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-keyword'>h2</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span class='cm-blank'>                    </span><span>
+</span></pre></td><td><pre class='cm-s-default'><span class='cm-comment'>/* Compiled CSS */</span><span>
+</span><span class='cm-atom'>#header</span><span> {
+  </span><span class='cm-variable'>color</span><span>: </span><span class='cm-atom'>#4D926F</span><span>;
+}
+</span><span class='cm-tag'>h2</span><span> {
+  </span><span class='cm-variable'>color</span><span>: </span><span class='cm-atom'>#4D926F</span><span>;
+}
+</span></pre></td></tr></table><h2>Mixins in Tea are just JS functions.</h2><p>Plain CSS rules are functions that are executed right in place.</p><table><tr><td><pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: red</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td><td><pre class='cm-s-default'><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>rule</span><span>(</span><span class='cm-string'>'body'</span><span>,</span><span class='cm-keyword'>function</span><span>(){
+  </span><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>rule</span><span>(</span><span class='cm-string'>'color:red'</span><span>)
+}
+</span></pre></td></tr></table><p>adds 'color:red' to rule stack.</p><p>And mixin is function for later use.</p><table><tr><td><pre class='cm-s-default'><span></span><span class='cm-def'>.my_mixin</span><span class='cm-rule'>(color) </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td><td><pre class='cm-s-default'><span class='cm-variable'>my_mixin</span><span> = </span><span class='cm-keyword'>function</span><span>(</span><span class='cm-def'>color</span><span>){
+  </span><span class='cm-variable'>tea</span><span>.</span><span class='cm-property'>print</span><span>(</span><span class='cm-string'>'color: '</span><span>+</span><span class='cm-variable-2'>color</span><span>);
+}
+</span></pre></td></tr></table><p>adds nothing to rule stack, but declares JS functions that can be used in plain rule.
+p You can call mixins as functions or using alternative syntax. So:
+table<tr><td><pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>.my_mixin(</span><span class='cm-string'>'red'</span><span class='cm-rule'>)</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td><td><pre class='cm-s-default'><span></span><span class='cm-keyword'>body</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-variable'>my_mixin</span><span>(</span><span class='cm-string'>'red'</span><span>)
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td></tr></p><p>are equivalent and produce
+Highlight css<body>color: red</body></p><p>As javascript does not support default parameters Tea CSS does neither. 
+You can implement them in JS as usual.</p><pre class='cm-s-default'><span></span><span class='cm-def'>.my_mixin</span><span class='cm-rule'>(color) </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-js_line_start'>@ </span><span class='cm-variable'>color</span><span> = </span><span class='cm-variable'>color</span><span> || </span><span class='cm-string'>'blue'</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-rule'>color: </span><span class='cm-js_inline_start'>@</span><span class='cm-js_inline'>color</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre><p>Of course, you can define functions as object members.</p><pre class='cm-s-default'><span class='cm-js_line_start'>@ </span><span class='cm-variable'>my_namespace</span><span> = {}
+</span><span class='cm-def'>.my_namespace.my_mixin</span><span class='cm-rule'>(color) </span><span class='cm-scope_start'>{</span><span class='cm-scope_end'>}</span><span>
+</span></pre><h2>Nested rules</h2><p>Rather than constructing long selector names to specify inheritance, 
+in TeaCSS you can simply nest selectors inside other selectors. 
+This makes inheritance clear and style sheets shorter.
+table<tr><td><pre class='cm-s-default'><span class='cm-comment'>/* TeaCSS */</span><span>
+</span><span class='cm-atom'>#header</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-keyword'>h1</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span>
+</span><span class='cm-blank'>    </span><span></span><span class='cm-rule'>font-size: 26px</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>    </span><span></span><span class='cm-rule'>font-weight: bold</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-blank'>  </span><span></span><span class='cm-keyword'>p</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span class='cm-blank'> </span><span></span><span class='cm-rule'>font-size: 12px</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>    </span><span></span><span class='cm-keyword'>a</span><span class='cm-rule'> </span><span class='cm-scope_start'>{</span><span class='cm-blank'> </span><span></span><span class='cm-rule'>text-decoration: none</span><span></span><span class='cm-nop'>;</span><span>
+</span><span class='cm-blank'>      </span><span></span><span class='cm-rule'>&amp;:hover </span><span class='cm-scope_start'>{</span><span class='cm-blank'> </span><span></span><span class='cm-rule'>border-width: 1px </span><span></span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-blank'>    </span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-blank'>  </span><span class='cm-scope_end'>}</span><span>
+</span><span class='cm-scope_end'>}</span><span>
+</span></pre></td><td><pre class='cm-s-default'><span class='cm-comment'>/* Compiled CSS */</span><span>
+</span><span class='cm-atom'>#header</span><span> </span><span class='cm-tag'>h1</span><span> {
+  </span><span class='cm-variable'>font-size</span><span>: </span><span class='cm-number'>26px</span><span>;
+  </span><span class='cm-variable'>font-weight</span><span>: </span><span class='cm-number'>bold</span><span>;
+}
+</span><span class='cm-atom'>#header</span><span> </span><span class='cm-tag'>p</span><span> {
+  </span><span class='cm-variable'>font-size</span><span>: </span><span class='cm-number'>12px</span><span>;
+}
+</span><span class='cm-atom'>#header</span><span> </span><span class='cm-tag'>p</span><span> </span><span class='cm-tag'>a</span><span> {
+  </span><span class='cm-variable'>text-decoration</span><span>: </span><span class='cm-number'>none</span><span>;
+}
+</span><span class='cm-atom'>#header</span><span> </span><span class='cm-tag'>p</span><span> </span><span class='cm-tag'>a</span><span>:</span><span class='cm-tag'>hover</span><span> {
+  </span><span class='cm-variable'>border-width</span><span>: </span><span class='cm-number'>1px</span><span>;
+}
+</span></pre></td></tr></p></section><section><h2>Usage</h2><h3>Client-side</h3><p>Link your .tea stylesheets with the rel set to “stylesheet/tea”:</p><pre class='cm-s-default'><span class='cm-tag'>&lt;link</span><span> </span><span class='cm-attribute'>tea</span><span>=</span><span class='cm-string'>&quot;style.tea&quot;</span><span class='cm-tag'>&gt;</span><span>
+</span></pre><p>Then download teacss.js from the top of the page, 
+and include it in the <head> element of your page, like so:</p><pre class='cm-s-default'><span class='cm-tag'>&lt;script</span><span> </span><span class='cm-attribute'>src</span><span>=</span><span class='cm-string'>&quot;teacss.js&quot;</span><span class='cm-tag'>&gt;&lt;/script&gt;</span><span>
+</span></pre><p>Make sure you include your stylesheets before the script.</p><h3>Server side</h3><p>TeaCSS does not handle saving css to server but simplifies process a lot.</p><p>You can add code like this to you development version of page:</p><pre class='cm-s-default'><span class='cm-tag'>&lt;script&gt;</span><span>
+  </span><span class='cm-variable'>teacss</span><span>.</span><span class='cm-property'>buildCallback</span><span>(</span><span class='cm-keyword'>function</span><span>(</span><span class='cm-def'>files</span><span>){
+    </span><span class='cm-variable'>$</span><span>.</span><span class='cm-property'>ajax</span><span>({ </span><span class='cm-property'>type</span><span>:</span><span class='cm-string'>'POST'</span><span>, </span><span class='cm-property'>url</span><span>: </span><span class='cm-variable'>location</span><span>.</span><span class='cm-property'>href</span><span>, </span><span class='cm-property'>data</span><span>: {</span><span class='cm-property'>css</span><span>:</span><span class='cm-variable-2'>files</span><span>[</span><span class='cm-string'>'\default.css'</span><span>]}  });
+  });
+</span><span class='cm-tag'>&lt;/script&gt;</span><span>
+</span><span class='cm-meta'>&lt;?</span><span> </span><span class='cm-keyword'>if</span><span> (</span><span class='cm-keyword'>isset</span><span>(</span><span class='cm-variable-2'>$_POST</span><span>[</span><span class='cm-string'>'css'</span><span>]) </span><span class='cm-word'>file_put_contents</span><span>(</span><span class='cm-string'>'path/style.css'</span><span>, </span><span class='cm-variable-2'>$_POST</span><span>[</span><span class='cm-string'>'css'</span><span>]) </span><span class='cm-meta'>?&gt;</span><span>
+</span></pre><p>Then for every tea link in page you will see an overlay ui that helps you to build all your styles.</p></section></div></body></html>

@@ -1,0 +1,93 @@
+Template canvas { 
+% extends "layout";
+    
+% block header {
+    link[tea="assets/canvas_demo.tea"];
+    script[src="assets/teacss/teacss.js"];
+}
+    
+% block content {
+section {
+    table {
+        tr {
+            td[style="padding-right:16px"] {
+                h1 Canvas module;
+                p Canvas module is for image manipulation purposes.;
+                p You can generate image for your styles on fly. It gives you unlimited
+                  possibilities to create graphics that matches your theme colors or styles.
+                  And it is all inside you *.tea file.;
+                
+                p { teacss.Canvas is javascript api for image creation and adjustment. 
+                    It has no dependecies with <b>teacss.core</b>, but is inteded to be used inside tea files. }
+                
+                h3 Under the hood;
+                ul {
+                    li teacss.Canvas relies on HTML5 Canvas, so it will work only with Canvas-enabled browsers.;
+                    li Library uses both 'webgl' and '2d' contexts with seamless switching between the two.;
+                    li Canvas functions work in a different way when <b>teacss.build</b> is used.
+                       You can save created or altered images to disk if needed for production use.
+                    li As HTML5 canvas and webgl available only in browser you have to fire build event from client side.;
+                    li TeaCSS comes bundled with several server backend versions. 
+                       But it is very easy to write an own one.
+                       The only thing needed - is to get data from browser and save it to disk. Already compiled and minified.;
+                }
+            }
+            td {
+                h3 Simple example;
+                Highlight teacss {
+                    var canvas = new Canvas('foo.jpg')
+                        .brightnessContrast(10,20)
+                        .multiplyColor('red')
+                        .draw2D(function(ctx,c2d) {
+                            ctx.strokeWidth = 5;
+                            ctx.moveTo(0,0);
+                            ctx.lineTo(c2d.width,c2d.height);
+                        })
+                    canvas.background('foo_bg.png');
+                }
+                
+                p Code is pretty self-explanatory. First, we load 'foo.jpg' adjust brightness 
+                  and contrast, then colorize it with red and later add some drawings on top.;
+                p Then we use it as element background and point that we want to save 
+                  that image as 'foo_bg.png' if we are in production.;
+            }
+        }
+    }
+
+    h2 Live sample (simple background generator), FF & Chrome only;
+    table {
+        tr {
+            td[style="padding-right:18px;width:55%;"] {
+                p Use colorpickers on the right to generate background image.;
+                p { 
+                    You can review the full code behind the link (with <b>teacss.ui</b> code):;
+                    a[href="assets/canvas_demo.tea" target="_blank"] canvas_demo.tea;
+                }
+                p  And here is all the tea code needed for this sample.;
+                Highlight teacss {
+                    body {
+                      @{
+                        // pretty clear here, huh?
+                        var canvas = new Canvas("src.png");
+                        canvas.replaceColors( {
+                            '#ffae00':picker1.value,
+                            '#f7e7ba':lighten(picker1.value,30),
+                            '#705551':picker2.value
+                        });
+                        // display
+                        canvas.background('bg.png');
+                      }
+                    }
+                }
+            }
+            td {
+                #canvas_live {
+                    h3 Sorry, no Opera and no IE for this sample. WebGL has to be enabled.;
+                }
+            }
+        }
+    }
+}
+section#canvas_display;
+}
+}
