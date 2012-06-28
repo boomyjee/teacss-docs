@@ -1,0 +1,26 @@
+.background_striped(size,width,color) {
+    @{
+        (new Canvas(size,size))
+        .draw2D(function(ctx){
+            ctx.beginPath();
+            ctx.lineWidth = width;
+            ctx.strokeStyle = color.toString();
+            ctx.moveTo(-size,-size); ctx.lineTo(size*2,size*2);
+            ctx.moveTo(-size-size,-size); ctx.lineTo(size,size*2);
+            ctx.moveTo(-size+size,-size); ctx.lineTo(size*3,size*2);
+            ctx.stroke();
+        })
+        .background();
+    }
+}
+
+td {
+    width: 300px;
+    height: 300px;
+}
+
+@ for (var i=1;i<=4;i++) {
+    #cell_@i {
+        .background_striped(i*30,i*10,hsl(i*30,100,40));
+    }
+@ }
