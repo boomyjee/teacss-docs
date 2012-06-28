@@ -1,6 +1,6 @@
 .background_striped(size,width,color) {
     @{
-        (new Canvas(size,size))
+        var canvas = (new Canvas(size,size))
         .draw2D(function(ctx){
             ctx.beginPath();
             ctx.lineWidth = width;
@@ -9,9 +9,9 @@
             ctx.moveTo(-size-size,-size); ctx.lineTo(size,size*2);
             ctx.moveTo(-size+size,-size); ctx.lineTo(size*3,size*2);
             ctx.stroke();
-        })
-        .background();
+        });
     }
+    background: url(@{canvas.toDataURL()});
 }
 
 td {
