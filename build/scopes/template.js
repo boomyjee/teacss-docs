@@ -61,6 +61,7 @@ teacss.tea.Template = teacss.Scope.extend({
             me.output += me.scriptMark.replace("name",name); 
         }}
             
+        if (!f) throw "Template has to be block tag";
         f.call(this);
 
         teacss.tea.Style = old_Style;

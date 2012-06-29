@@ -1,0 +1,107 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 1024px;
+    height: 800px;
+    margin: 0 auto;
+    position: relative;
+    margin-top: 10px;
+}
+
+#code, #html, #result {
+    border: 1px solid black;
+    position: absolute;
+    overflow: hidden;
+}
+
+#code {
+    left: 0; right: 51%;
+    top: 0; bottom: 0;
+}
+
+#result {
+    left: 50%; right: 0;
+    top: 0; bottom: 51%;
+}
+
+#html {
+    left: 50%; right: 0;
+    top: 50%; bottom: 0;
+}
+
+.error {
+    display: block;
+    background: #faa;
+    color: #700;
+}
+
+@import "../build/scopes/lib/codemirror/codemirror.tea";
+@append "../build/scopes/lib/codemirror/lib/codemirror.css";
+@append "../build/scopes/lib/codemirror/theme/default.css";
+@append "../build/scopes/lib/codemirror/mode/teacss/teacss.css";
+
+@import "../build/scopes/template.js";
+
+.teacss-ui .CodeMirror-scroll, .teacss-ui .CodeMirror {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    height: auto;
+}
+
+Script {
+    @append "http://code.jquery.com/jquery-1.7.2.js";
+    @append {
+        $(function(){
+            $("#code").addClass("teacss-ui");
+            var editor = CodeMirror($("#code")[0],{
+                mode: "teacss",
+                onChange: function () {
+                    var text = editor.getValue();
+                    teacss.tea.Template.templates = {}
+                    teacss.parsed["test.tea"] = teacss.parse(text,"test.tea");
+                
+                    var result = "";
+                    var error = false;
+                    try {
+                        teacss.process("test.tea",function(){
+                            var list = teacss.tea.Template.templates;
+                            var tpl = false;
+                            for (var key in list) {
+                                tpl = list[key];
+                                break;
+                            }
+                            if (!tpl) {
+                                error = "No template was declared";
+                            } else {
+                                result = tpl.text;
+                            }
+                            teacss.tea.Style.insert(document);
+                            show();
+                        });
+                    } catch (e) {
+                        error = e;
+                        show();
+                    }
+                
+                    function show() {
+                        if (error) {
+                            error = "<span class='error'>"+error+"</span>";
+                            $("#result,#html").html(error);
+                        } else {
+                            $("#result").html(result);
+                            $("#html").text(result);
+                        }
+                    }
+                }
+            });
+            
+            teacss.getFile("assets/template_demo_default.tea",function(text){
+                editor.setValue(text);
+            });
+        });
+    }
+}

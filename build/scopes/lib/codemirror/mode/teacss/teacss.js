@@ -57,9 +57,9 @@ CodeMirror.defineMode("teacss", function(config, parserConfig) {
                 for (var key in state_from.data) {
                     state_copy.data[key] = state_from.data[key];
                 }
-                state_copy.jsState = CodeMirror.copyState({},state_from.jsState);
                 copy.states.push(state_copy);
             }
+            copy.jsState = CodeMirror.copyState(jsMode,from.jsState);
             copy.state = copy.states[copy.states.length-1].state;
             copy.data = copy.states[copy.states.length-1].data;
             return copy;

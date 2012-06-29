@@ -1,0 +1,55 @@
+Template build { 
+% extends "layout";
+% block content {
+        
+section {
+    h1 Using as a build system;
+    p Using teacss to create build files in pretty simple.
+      It is convinient to have only one entry point for your styles.
+      And it is already handled in teacss using <b>@{"@import"}</b>.;
+    p Would it be nice to have the same thing for your scripts? For sure.;
+    p Some script managers already exist. For example RequireJS and StealJS.
+      AFAIK these are the only two that also handle minification and creating production versions.;
+    p As to me they have some flaws.;
+    ul {
+        li They both leave api specific calls inside production file. StealJS has 'pluginify' build type but it is quite buggy.;
+        li RequireJS does not handle CSS.;
+        li StealJS does not support CSS embedding and there is no option for output file name (only production.*);
+        li StealJS has some path problems in production version and there is no way to reconfigure that.;
+    }
+
+    p Some of those problems have their roots in asyncronous web nature.
+      You cannot just write <b>require('module_name')</b> and use it.;
+    p The solution is to use some kind of makefile. TeaCSS introduces as new keyword <b>Script</b>.;
+    p And <b>@{"@append"}</b> goes to the scenes. All JS code imported with <b>@{"@append"}</b> is assumed as needed for production,
+      so it will be bundled into release file.;
+
+    h3 Example tea "makefile";
+    Highlight teacss {
+        // make.tea
+        Script my_filename {
+            // jquery
+            @append "scripts/jquery.js";
+            @append "scripts/jquery.plugin.js";
+            // app
+            @append "scripts/app.js";
+            @append {
+                var x = 5+3; // some plain js
+            }
+        }
+        // styles
+        @append "style/jquery.plugin.css";
+        @import "some_teacss_stylesheet.tea";
+    }
+            
+    p Instead of creating lots of script and link tags you can use only one entry point for your application.;
+    Highlight xml {
+        <link tea="make.tea">
+    }
+    p Later, using build script you can get <b>my_filename.js</b> file that contains jquery.js, jquery.plugin.js and app.js. Minified and compressed.;
+    p You can also save styles as described in <a href="index.htm">Intro section</a>;
+}
+        
+        
+}
+}

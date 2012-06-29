@@ -7,7 +7,7 @@
     <script src="../assets/teacss/teacss.js"></script>
     <script>
         teacss.buildCallback = function (files) {
-            var pages = ['index','canvas','stripes'];
+            var pages = ['index','canvas','stripes','build','template'];
             var html = {};
             for (var i=0;i<pages.length;i++) {
                 var page = pages[i];

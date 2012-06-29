@@ -1,0 +1,40 @@
+Template test {
+  #header {
+    ul#menu {
+      li { a[href=""] Home }
+      li { a[href=""] Portfolio }
+      li { a[href=""] About Us }
+      li { a[href=""] Contacts }
+    }
+  }
+  #content {
+    p This is first content paragraph;
+    p And this is a second one; 
+  }
+  #footer {
+    (c) Test template, 2012
+  }
+}
+
+#menu {
+  li {
+    display: inline-block;
+    background: gray;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border: 2px solid black;
+    a {
+      color: white;
+    }
+  }
+}
+
+#content {
+  clear: both;
+  padding: 20px;
+}
+
+#footer {
+  background: #eee;
+}
+
