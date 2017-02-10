@@ -1,4 +1,4 @@
-var teacss = teacss || (function(){
+window.teacss = window.teacss || (function(){
     var teacss = {
         // runtime
         tea: false,
@@ -10,9 +10,53 @@ var teacss = teacss || (function(){
         parsed:{},
         // sheets registered on start
         sheets:{},
-        // aliases for mixins
-        aliases:{}
+        // events
+        onError: false
     };
+
+    // Path utils
+    teacss.path = {
+        isAbsoluteOrData : function(path) {
+            return /^(.:\/|data:|http:\/\/|https:\/\/|\/)/.test(path)
+        },
+        absolute: function (src) {
+            var a = document.createElement('a');
+            a.href = src;
+            return a.href;            
+        },
+        clean : function (part) {
+            part = part.replace(/\\/g,"/");
+            part = part.split("/");
+            for (var p=0;p<part.length;p++) {
+                if (part[p]=='..' && part[p-1]) {
+                    part.splice(p-1,2);
+                    p = p - 2;
+                }
+                if (part[p]==".") {
+                    part.splice(p,1);
+                    p = p - 1;
+                }
+            }
+            return part = part.join("/");
+        },
+        dir : function (path) {
+            var dir = path.replace(/\\/g,"/").split('/');dir.pop();dir = dir.join("/")+'/';
+            return dir;
+        },
+        relative : function (path,from) {
+            var pathParts = path.split("/");
+            var fromParts = from.split("/");
+
+            var once = false;
+            while (pathParts.length && fromParts.length && pathParts[0]==fromParts[0]) {
+                pathParts.splice(0,1);
+                fromParts.splice(0,1);
+                once = true;
+            }
+            if (!once || fromParts.length>2) return path;
+            return new Array(fromParts.length+1).join("../") + pathParts.join("/");
+        }
+    }    
     
     // LazyLoad library
     LazyLoad_f=function(k){function p(b,a){var g=k.createElement(b),c;for(c in a)a.hasOwnProperty(c)&&g.setAttribute(c,a[c]);return g}function l(b){var a=m[b],c,f;if(a)c=a.callback,f=a.urls,f.shift(),h=0,f.length||(c&&c.call(a.context,a.obj),m[b]=null,n[b].length&&j(b))}function w(){var b=navigator.userAgent;c={async:k.createElement("script").async===!0};(c.webkit=/AppleWebKit\//.test(b))||(c.ie=/MSIE/.test(b))||(c.opera=/Opera/.test(b))||(c.gecko=/Gecko\//.test(b))||(c.unknown=!0)}function j(b,a,g,f,h){var j=
@@ -21,6 +65,7 @@ var teacss = teacss || (function(){
     b.urls[0]){l("css");break}h+=1;b&&(h<200?setTimeout(t,50):l("css"))}}var c,s,m={},h=0,n={css:[],js:[]},v=k.styleSheets;return{css:function(b,a,c,f){j("css",b,a,c,f)},js:function(b,a,c,f){j("js",b,a,c,f)}}};
     
     LazyLoad = LazyLoad_f(this.document);
+    teacss.LazyLoad_f = LazyLoad_f;
     
     // github.com/mbostock/queue
     (function(){function a(a){function l(){if(g&&d<a){var b=g,c=b[0],f=Array.prototype.slice.call(b,1),m=b.index;g===h?g=h=null:g=g.next,++d,f.push(function(a,b){--d;if(i)return;a?e&&k(i=a,e=j=g=h=null):(j[m]=b,--e?l():k(null,j))}),c.apply(null,f)}}var c={},d=0,e=0,f=-1,g,h,i=null,j=[],k=b;return arguments.length<1&&(a=Infinity),c.defer=function(){if(!i){var a=arguments;a.index=++f,h?(h.next=a,h=h.next):g=h=a,++e,l()}return c},c.await=function(a){return k=a,e||k(i,j),c},c}function b(){}typeof module=="undefined"?self.queue=a:module.exports=a,a.version="0.0.2"})();    
@@ -68,22 +113,54 @@ var teacss = teacss || (function(){
                             output += parsed.ast.children[i].getJS(teacss.tea.Style);
                 
                         output = "(function(){with (teacss.functions){\n" + output;
-                        output += "\n}})"+"//@ sourceURL="+path;
+                        output += "\n}})"+"//# sourceURL="+path;
                         
                         parsed.js = output;
                     }
                     
                     // Compile pass, evaluate js to function
                     try {
+                        if (teacss.onError) {
+                            try { 
+                                throw new Error("lineNumber"); 
+                            } catch (e) { 
+                                teacss.evalLine = (e.lineNumber || 0) + 6;
+                            }
+                        }
                         parsed.func = eval(parsed.js);
                     } catch (e) {
-                        console.debug(path);
-                        console.debug(e);
-                        console.debug(parsed.js);
-                        throw e;
+                        if (teacss.onError) {
+                            teacss.onError({e:e,type:"parse",parsed:parsed,path:path,line:false});
+                        } else {
+                            console.debug(path);
+                            console.debug(e);
+                            console.debug(parsed.js);
+                            throw e;
+                        }
                     }
                 }
-                parsed.func.call(window);
+                if (parsed.func) {
+                    if (teacss.onError) {
+                        try {
+                            parsed.func.call(window);
+                        } catch (e) {
+                            var line = false;
+                            var guess_path = path;
+                            if (window.chrome) {
+                                var stack = e.stack;
+                                var matches = /\(([^:]*)\:([0-9]{1,100})\:[0-9]{1,100}/.exec(stack);
+                                
+                                guess_path = matches[1];
+                                line = parseInt(matches[2]) - 2;
+                            } else {
+                                line = e.lineNumber - teacss.evalLine;
+                            }
+                            teacss.onError({e:e,type:"run",parsed:parsed,path:guess_path,line:line});
+                        }
+                    } else {
+                        parsed.func.call(window);
+                    }
+                }
                 setPath(old_path);
             }
         };        
@@ -114,21 +191,36 @@ var teacss = teacss || (function(){
             var output = "";
             // test for mixin
             var match;
-            if (match = /^\.([-0-9A-Za-z_\.]+)(<[-0-9A-Za-z_]+>)*(\(.*\))\s*$/.exec(ast.selector)) {
+            if (match = /^\.([-0-9A-Za-z_\.]+)(<[-0-9A-Za-z_]+>)*(\([\s\S]*\))\s*$/m.exec(ast.selector)) {
                 if (ast.is_block) {
                     output += match[1] + " = function "+match[3]+" {";
                     for (var i=0;i<ast.children.length;i++)
                         output += ast.children[i].getJS(this);
+                    if (match[2]) {
+                        if (!this.aliases) this.aliases = {};
+                        this.aliases[match[2].substring(1,match[2].length-1)] = match[1];
+                    }
                     output += "}";
                 } else {
-                    output += ast.selector.substring(1)+";";
+                    var args;
+                    if (/^\(\s*\)$/.test(match[3])) 
+                        args = "(this)";
+                    else
+                        args = "(this, "+ match[3].substring(1);
+                    output += match[1] + ".call"+args+";";
                 }
+                return output;
+            }
+            
+            if (/^@append\s/.test(ast.selector)) {
+                output = "tea.scope.append("+ast.selector.replace(/^@append\s*/,'')+");";
                 return output;
             }
             
             function string_format(s) { return '"'+s.replace(/(["\\])/g,'\\$1').replace(/\r?\n(\s*)/g,'\\n"+\n$1"')+'"'; }
 
             var selector_string = "";
+            var modifiers = "";
             if (this.format=="string") {
                 for (var t=0;t<ast.selector_tokens.length;t++) {
                     var token = ast.selector_tokens[t];
@@ -138,7 +230,7 @@ var teacss = teacss || (function(){
                         case "js_inline_block": selector_string += '('+token.data.slice(2,-1)+')'; break;
                         case "rule": 
                             var data = token.data;
-                            if (t==0 && token.data[0]=="!") data = token.data.substring(1);
+                            if (t==0 && token.data[0]=="!") { data = token.data.substring(1); modifiers = "!"; }
                             if (t==ast.selector_tokens.length-1) data = data.replace(/\s+$/,'');
                             selector_string += string_format(data); 
                             break;
@@ -168,7 +260,7 @@ var teacss = teacss || (function(){
                     output += "});";    
                 }
             } else {
-                output += "tea."+keyword+"("+selector_string+");"
+                output += "tea."+keyword+"("+selector_string+",'"+modifiers+"');"
             }
             return output;
         }
@@ -177,13 +269,58 @@ var teacss = teacss || (function(){
     teacss.tea.Script = teacss.Scope.extend({
         // parser
         getJS: function (ast) {
+            function string_format(s) { return '"'+s.replace(/(["\\])/g,'\\$1').replace(/\r?\n(\s*)/g,'\\n"+\n"$1')+'"'; }
+            function flatten(ast,list) {
+                function push(what) {
+                    if (
+                        list.last_name!="js_inline" && list.last_name!="js_inline_block" && list.length
+                        && what.name!="js_inline" && what.name!="js_inline_block"
+                    ) {
+                        list[list.length-1].data += what.data;
+                    } else {
+                        list.push(what);
+                    }
+                    list.last_name = what.name;
+                }
+
+                if (list.length!=0) {
+                    if (ast.name=='rule') {
+                        for (var t=0;t<ast.selector_tokens.length;t++)
+                            push(ast.selector_tokens[t]);
+                    } else {
+                        push(ast);
+                    }
+                }
+                if (ast.is_block) list.push({data:"{"});
+                for (var i=0;i<ast.children.length;i++) {
+                    flatten(ast.children[i],list);
+                }
+                if (ast.is_block) push({data:"}"});
+            }
+            
             var output = "";
             output += "tea.Script.init('"+trim(ast.selector.replace(/^Script\s*/,''))+"',function(){";
             for (var i=0;i<ast.children.length;i++) {
                 var child = ast.children[i];
                 if (child.name=="rule") {
                     if (child.is_block) {
-                        output += "tea.Script.append(function()"+child.flatten().replace(/^@append\s*/,'')+");";
+                        var chunks = [];
+                        flatten(child,chunks);
+                        
+                        var string_list = [];
+                        for (var j=0;j<chunks.length;j++) {
+                            var chunk = chunks[j];
+                            switch (chunk.name) {
+                                case "js_inline": string_list.push('('+chunk.data.slice(1)+')');break;
+                                case "js_inline_block": string_list.push('('+chunk.data.slice(2,-1)+')');break;
+                                default:
+                                    string_list.push(string_format(chunk.data));
+                                    break;
+                            }
+                        }
+                        
+                        var s = string_list.join('+');
+                        output += "tea.Script.append("+s+",true);";
                     } else {
                         output += "tea.Script.append("+child.selector.replace(/^@append\s*/,'')+");";
                     }
@@ -209,14 +346,18 @@ var teacss = teacss || (function(){
             f.call(this);
             this.list = old_list;
         },
-        append: function (what) {
-            if (!(what && what.call && what.apply)) {
-                what = teacss.getFullPath(what,teacss.tea.path);
+        append: function (what,isCode) {
+            if (!isCode) {
+                what = teacss.getFullPath(what,teacss.tea.path,true);
             }
-            this.list.push(what);
+            this.list.push({what:what,isCode:isCode});
         },
         get: function (names,callback) {
             var q = new queue(10);
+            if (!callback) {
+                callback = names;
+                names = false;
+            }
             
             if (!names) {
                 names = [];
@@ -232,10 +373,22 @@ var teacss = teacss || (function(){
                     list.push( this.files[key][i] );
             }
             
+            var set = {};
+            var unique = [];
             for (var i=0;i<list.length;i++) {
-                var what = list[i];
-                if (what && what.call && what.apply) {
-                    list[i] = what.toString().replace(/^\s*function\s*\(.*?\)\s*/,'');
+                if (!list[i].isCode) {
+                    var path = teacss.path.absolute(list[i].what);
+                    if (set[path]) continue;
+                    set[path] = true;
+                }
+                unique.push(list[i]);
+            }
+            list = unique;
+            
+            for (var i=0;i<list.length;i++) {
+                var what = list[i].what;
+                if (list[i].isCode) {
+                    list[i] = what;
                 } else {
                     var path = what;
                     q.defer(function(i,list,path,done){
@@ -250,8 +403,13 @@ var teacss = teacss || (function(){
                 callback(list.join(';\n'));
             });
         },
-        insert: function (document,names) {
+        insert: function (document,names,callback) {
 
+            if (names && names.call && names.apply) {
+                callback = names;
+                names = undefined;
+            }
+            
             var id = "script_"+(teacss.tea.processed).replace(/[^A-Za-z0-9]/g,'_');
             var node = document.getElementById(id);
             if (node) return;
@@ -269,17 +427,21 @@ var teacss = teacss || (function(){
             }
             if (names.constructor!=Array) names = [names];
             var list = [];
+            var set = {};
             for (var n=0;n<names.length;n++) {
                 var key = names[n];
                 if (!this.files[key]) continue;
                 for (var i=0;i<this.files[key].length;i++) {
                     var what = this.files[key][i];
-                    
-                    if (what && what.call && what.apply) {
+                    if (what.isCode) {
                         list.push(what);
                     } else {
-                        if (list.length==0 || list[list.length-1].apply) list.push([]);
-                        list[list.length-1].push(what);
+                        var path = teacss.path.absolute(what.what);
+                        if (!set[path]) {
+                            set[path] = true;
+                            if (list.length==0 || list[list.length-1].isCode) list.push([]);
+                            list[list.length-1].push(what.what);
+                        }
                     }
                 }
             }
@@ -290,19 +452,22 @@ var teacss = teacss || (function(){
             
             for (var i=0;i<list.length;i++) {
                 var what = list[i];
-                if (what && what.call && what.apply) {
+                if (what.isCode) {
                     q.defer(function (what,done){
-                        var code = what.toString().replace(/^\s*function\s*\(.*?\)\s*/,'');
+                        var code = what;
                         script = document.createElement("script");
                         script.innerHTML = code;
                         head.appendChild(script);
-                    },what);
+                        done();
+                    },what.what);
                 } else {
                     q.defer(function(what,done){
                         loader.js(what,done);
                     },what);
                 }
             }
+            
+            if (callback) q.await(callback);
         }
     });
     
@@ -362,14 +527,18 @@ var teacss = teacss || (function(){
                 val.call(this.current);
                 this.current = this.current.parent;            
             } else {
-                var s = (val!==undefined) ? key+':'+val : key;
-                
+                var s = key;
+                var modifiers = val;
                 if (key.substring(0,7)=="@append") return this.append(s);
-                if (val && teacss.aliases[key]) {
-                    window[teacss.aliases[key]](trim(val.substring(1)));
-                    return;
-                }
                 
+                var idx;
+                if ((idx=s.indexOf(":"))!=-1) {
+                    var subkey = trim(s.substring(0,idx));
+                    if (this.aliases && idx && this.aliases[subkey] && modifiers!="!") {
+                        window[this.aliases[subkey]](trim(s.substring(idx+1)));
+                        return;
+                    }
+                }
                 if (this.current)
                     this.current.print(s);
                 else
@@ -378,10 +547,13 @@ var teacss = teacss || (function(){
         },
         namespace: function (selector,func) {
             this.indent = "    ";
+            var old_current = this.current;
+            this.current = false;
             this.rules.push({getOutput:function(){return selector+' {\n'}});
             func.call(this.current);
             this.rules.push({getOutput:function(){return '}\n'}});
             this.indent = "";
+            this.current = old_current;
         },
         append: function (path) {
             path = path.replace(/^@append\s*/,'');
@@ -393,12 +565,13 @@ var teacss = teacss || (function(){
                     teacss.tea.Script.append(path);
                 });
             } else {
-                this.appends.push(teacss.getFullPath(path,teacss.tea.path));
+                this.appends.push(teacss.getFullPath(path,teacss.tea.path,true));
             }
         },
         get: function (callback,filter) {
             var output = "";
             for (var i=0;i<this.rules.length;i++) output += this.rules[i].getOutput();
+            if (filter) output = filter(output,undefined);
             
             var appended = [];
             var q = queue(10);
@@ -446,7 +619,7 @@ var teacss = teacss || (function(){
         }
     })
         
-    teacss.getFullPath = function(path,base) {
+    teacss.getFullPath = function(path,base,allowNoExt) {
         base = (base===undefined) ? location.href:base;
         if (!(path[0]=='/' ||
             path.indexOf("http://")==0 ||
@@ -456,11 +629,13 @@ var teacss = teacss || (function(){
             base = (last==-1) ? "" : base.substring(0,last)+"/";
             path = base+path;
         }
-        if (path.indexOf(".js")==-1 && path.indexOf(".tea")==-1 && path.indexOf(".css")==-1) path += ".tea";
+        if (!allowNoExt) {
+            if (path.indexOf(".js")==-1 && path.indexOf(".tea")==-1 && path.indexOf(".css")==-1) path += ".tea";
+        }
         return path;
     }    
         
-    teacss.getFile = function(path,callback) {
+    teacss.getFile = function(path,callback,remote) {
         if (teacss.files[path]) {
             callback(teacss.files[path]);
             return;
@@ -470,7 +645,15 @@ var teacss = teacss || (function(){
             if (xhr.readyState === 4) {
                 var text = teacss.files[path] = xhr.status==200 ? xhr.responseText:false;
                 try {
-                    callback(text);
+                    if (text!==false || remote) {
+                        callback(text);
+                    } else {
+                        var _url = location.href;
+                        _url += (_url.split('?')[1] ? '&':'?') + "remote="+encodeURIComponent(path)
+                        teacss.getFile(_url,function(text){
+                            callback(text);
+                        },true);
+                    }
                 } catch (e) {
                     setTimeout(function(){ throw e; },1);
                 }
@@ -503,26 +686,30 @@ var teacss = teacss || (function(){
         
     teacss.process = function (path,callback,document) {
         if (path[0]=="/") path = location.protocol + "//" +location.host+path;
-
+        
+        function processParsed(parsed,callback) {
+            if (!parsed) 
+                callback();
+            else {
+                if (parsed.imports.length==0) callback();
+                var loaded = 0;
+                var loaded_cb = function () {
+                    loaded++;
+                    if (loaded==parsed.imports.length) callback();
+                }
+                for (var i=0;i<parsed.imports.length;i++) {
+                    processFile(parsed.imports[i],loaded_cb);
+                }     
+            }
+        }
+        
         function processFile(path,callback) {
             teacss.parseFile(path,function(parsed){
-                if (!parsed) 
-                    callback();
-                else {
-                    if (parsed.imports.length==0) callback();
-                    var loaded = 0;
-                    var loaded_cb = function () {
-                        loaded++;
-                        if (loaded==parsed.imports.length) callback();
-                    }
-                    for (var i=0;i<parsed.imports.length;i++) {
-                        processFile(parsed.imports[i],loaded_cb);
-                    }     
-                }
+                processParsed(parsed,callback);
             });
         }
         
-        processFile(path,function(){
+        function wrap() {
             for (var key in teacss.tea) {
                 if (teacss.tea[key] && teacss.tea[key].start) teacss.tea[key].start();
             }
@@ -535,10 +722,12 @@ var teacss = teacss || (function(){
                 if (teacss.tea[key] && teacss.tea[key].finish) teacss.tea[key].finish();
             }
             callback();
-        });
+        }        
+        
+        processFile(path,wrap);
     }
         
-    teacss.sheets = function () {
+    teacss.getSheets = function () {
         var sheets = [];
         if (typeof document=='undefined') return [];
         var links_css = document.getElementsByTagName('link');
@@ -549,11 +738,11 @@ var teacss = teacss || (function(){
         for (var i = 0; i < links.length; i++) {
             var tea = links[i].getAttribute('tea');
             if (tea) {
-                sheets.push({src:tea});
+                sheets.push({src:teacss.path.absolute(tea),element:links[i]});
             }
         }
         return sheets;
-    }();    
+    }
     
     teacss.update = function() {
         if (teacss.updating) {
@@ -564,12 +753,14 @@ var teacss = teacss || (function(){
         teacss.updating = true;
         teacss.refresh = false;
         
+        teacss.sheets = teacss.getSheets();
+        
         var q = queue(1);
         for (var i=0;i<teacss.sheets.length;i++) {
             var sheet = teacss.sheets[i];
             q.defer(function(sheet,done){
                 teacss.process(
-                    sheet.src,
+                    sheet.src || location.href,
                     function(){
                         teacss.tea.Style.insert(document);
                         teacss.tea.Script.insert(document);
@@ -727,15 +918,18 @@ var teacss = teacss || (function(){
                 else if (stack.data.string_double) {
                     if (stream.peek()=='"' && stream.string[stream.pos-1]!='\\') stack.data.string_double = false;
                 }
-                else if (stack.data.inside_url) {
-                    if (stream.peek()==")") stack.data.inside_url = false;
-                }
                 else {
-                    if (stream.peek()=="'") { stack.data.string_single = true; }
+                    if (stack.data.braces===undefined) stack.data.braces = 0;
+                    
+                    if (stream.peek()=="(") { stack.data.braces++; }
+                    else if (stream.peek()==")") { stack.data.braces--; }
+                    else if (stream.peek()=="'") { stack.data.string_single = true; }
                     else if (stream.peek()=='"') { stack.data.string_double = true; }
-                    else if (stream.match("url(",false)) { stack.data.inside_url = true; }
-                    else if (stream.peek()==';' || stream.peek()=='}') { stack.pop(); return null; }
-                    else if (stream.peek()=='{') { stream.next(); stack.pop(); stack.push('scope'); return "scope_start"; }
+                    if (stack.data.braces==0) 
+                    {
+                        if (stream.peek()==';' || stream.peek()=='}') { stack.pop(); return null; }
+                        else if (stream.peek()=='{') { stream.next(); stack.pop(); stack.push('scope'); return "scope_start"; }
+                    }
                 }
                 stream.next();
                 return "rule";
@@ -799,10 +993,12 @@ var teacss = teacss || (function(){
             this.data = data;
         }
         SyntaxNode.prototype = {
-            push: function (name,data) {
+            push: function (name,data,start) {
                 var ast = new SyntaxNode(name,data);
                 this.children.push(ast);
                 ast.parent = this;
+                ast.start = start;
+                ast.end = start + (data ? data.length : 0);
                 return ast;
             },
             flatten: function () {
@@ -861,7 +1057,7 @@ var teacss = teacss || (function(){
         if (ext=="js") {
             var output = "";
             output = "(function(){with (teacss.functions){\n" + code;
-            output += "\n}})"+"//@ sourceURL="+path;
+            output += "\n}})"+"//# sourceURL="+path;
             
             return {
                 js: output,
@@ -902,7 +1098,7 @@ var teacss = teacss || (function(){
                 case "js_line":
                 case "blank":
                 case "comment":
-                case "comment_line": ast.push(token.name,token.data); break;
+                case "comment_line": ast.push(token.name,token.data,pos); break;
 
                 // import tokens, calculate full path for later inclusion
                 case "import":
@@ -929,26 +1125,26 @@ var teacss = teacss || (function(){
                     
                 // we start a new rule node, probably with children if it's a block rule
                 case "rule":
-                case "js_inine":
+                case "js_inline":
                 case "js_inline_block":
                     ast = ast.push("rule");
                     // gather all the tokens that define rule selector
                     ast.selector = token.data;
                     ast.selector_tokens = [token];
                     ast.start = pos;
-                    if (tokens[t+1])
-                        while (tokens[t+1].name=="rule" || 
-                               tokens[t+1].name=="js_inline" || 
-                               tokens[t+1].name=="js_inline_block") 
-                        { 
-                            t++;
-                            ast.selector_tokens.push(tokens[t]);
-                            ast.selector += tokens[t].data;
-                            pos += tokens[t].data.length;
-                        }
+                    while (tokens[t+1] &&
+                       (tokens[t+1].name=="rule" || 
+                        tokens[t+1].name=="js_inline" || 
+                        tokens[t+1].name=="js_inline_block")) 
+                    { 
+                        t++;
+                        ast.selector_tokens.push(tokens[t]);
+                        ast.selector += tokens[t].data;
+                        pos += tokens[t].data.length;
+                    }
                     ast.data = ast.selector;
                     var is_block = ast.is_block = (tokens[t+1] && tokens[t+1].name=="scope_start");
-                    if (ast.is_block) t++;
+                    if (ast.is_block) { t++; pos += tokens[t].data.length; }
                     
                     // selector switches to a new scope
                     var scope = ast.selector.split(" ",1)[0];
@@ -1344,6 +1540,7 @@ teacss.Color = teacss.Color || function() {
         }
     }
     String.prototype.toHSL = function () { return Color.parse(this).toHSL(); }
+    String.prototype.toHSV = function () { return Color.parse(this).toHSV(); }
 
     for (var name in Color.functions) {
         teacss.functions[name] = function(func){
@@ -1368,15 +1565,14 @@ teacss.image = teacss.functions.image = teacss.image || (function(){
     var endDeferred = function (callback) {
         deferred--;
         if (deferred==0) {
-            if (callback)
-                callback.apply();
-            else 
-                teacss.update();
+            teacss.image.deferredUpdate = true;
+            if (callback) callback.apply(); else teacss.image.update();
+            teacss.image.deferredUpdate = false;
         }
     }
 
     var load = function (list,callback) {
-        var list = (list.constructor==Array) ? list : [list];
+        var list = (list && list.constructor==Array) ? list : [list];
         var left = list.length;
         var local_callback = function (url) {
             left--;
@@ -1444,47 +1640,12 @@ teacss.image = teacss.functions.image = teacss.image || (function(){
     constructor.startDeferred = startDeferred;
     constructor.endDeferred = endDeferred;
     constructor.load = load;
+    constructor.update = function () { teacss.update(); }
 
     return constructor;
 })();;
 teacss.build = (function () {
-    var path = {
-        isAbsoluteOrData : function(part) {
-            return /^(.:\/|data:|http:\/\/|https:\/\/|\/)/.test(part)
-        },
-        clean : function (part) {
-            part = part.replace(/\\/g,"/");
-            part = part.split("/");
-            for (var p=0;p<part.length;p++) {
-                if (part[p]=='..' && part[p-1]) {
-                    part.splice(p-1,2);
-                    p = p - 2;
-                }
-                if (part[p]==".") {
-                    part.splice(p,1);
-                    p = p - 1;
-                }
-            }
-            return part = part.join("/");
-        },
-        dir : function (path) {
-            var dir = path.replace(/\\/g,"/").split('/');dir.pop();dir = dir.join("/")+'/';
-            return dir;
-        },
-        relative : function (path,from) {
-            var pathParts = path.split("/");
-            var fromParts = from.split("/");
-
-            var once = false;
-            while (pathParts.length && fromParts.length && pathParts[0]==fromParts[0]) {
-                pathParts.splice(0,1);
-                fromParts.splice(0,1);
-                once = true;
-            }
-            if (!once || fromParts.length>2) return path;
-            return new Array(fromParts.length).join("../") + pathParts.join("/");
-        }
-    }
+    var path = teacss.path;
         
     /**
      * Builds tea file into js|css|images object
@@ -1524,12 +1685,19 @@ teacss.build = (function () {
             teacss.tea.Style.rule("background-image:url("+part+");");
         }
         
+        teacss.building = true;
         teacss.process(makefile,function(){        
+            
+            teacss.building = false;
             
             teacss.Canvas.effects.background = old_canvasBackground;
             var q = teacss.queue(10);
             
             // Style
+            var rootStylePath = false;
+            if (options.stylePath && path.isAbsoluteOrData(options.stylePath)) {
+                rootStylePath = teacss.path.absolute(options.stylePath);
+            }            
             q.defer(function(done){
                 teacss.tea.Style.get(
                     function(css){
@@ -1538,7 +1706,8 @@ teacss.build = (function () {
                     },
                     function(css,href) {
                         return css.replace(/url\(['"]?([^'"\)]*)['"]?\)/g, function( whole, part ) {
-                            var rep = (!path.isAbsoluteOrData(part)) ? path.dir(path.clean(href)) + part : part;
+                            var rep = (!path.isAbsoluteOrData(part) && href!==undefined) ? path.dir(path.clean(href)) + part : part;
+                            if (rootStylePath) rep = path.relative(rep,rootStylePath);
                             return 'url('+rep+')';
                         });
                     }
@@ -1580,27 +1749,60 @@ teacss.build = (function () {
     }
         
     build.run = function (s) {
-        var url = teacss.sheets[s].src;
-        teacss.build(url,{callback:teacss.buildCallback});
+        var sheet = teacss.sheets[s];
+        var url = sheet.src;
+        
+        var scriptPath = sheet.element.getAttribute("data-js-path");
+        var stylePath = sheet.element.getAttribute("data-css-path");
+        
+        teacss.build(url,{
+            callback:teacss.buildCallback,
+            scriptPath: scriptPath || undefined,
+            stylePath: stylePath || undefined
+        });
     }
         
     var bodyLoaded = function () {
         var body = document.getElementsByTagName('body')[0];
         if (!body) return setTimeout(bodyLoaded,100);
         if (!teacss.buildCallback) return;
+        if (window.buildLoaded) return;
+        window.buildLoaded = true;
         
         var div = document.createElement('div');
+        div.id = "teacss-build-panel";
         div.style.position = 'fixed';
         div.style.right = '3px';
         div.style.top = '3px';
+        div.style.zIndex = 100000;
         
+        var css = "";
+        css += "#teacss-build-panel { display: none; font-size: 12px !important; }";
+        css += "body:hover #teacss-build-panel { display: block; }";
+        css += "#teacss-build-panel > div { border:1px solid #555;padding:5px;margin:0;background:#333;color:#fff; }";
+        css += "#teacss-build-panel a { cursor:pointer;color:#ffa;padding:0;margin:0;background:transparent;border:none; text-decoration:none; }";
+        css += "#teacss-build-panel a:hover { text-decoration: underline; }";
+        css += "#teacss-build-panel pre  { display:inline;padding:0;margin:0;background:transparent;border:none; }";
+        
+        var node = document.createElement('style');
+        node.type = "text/css";
+        var rules = document.createTextNode(css);
+        if (node.styleSheet) {
+            node.styleSheet.cssText = rules.nodeValue;
+        } else {
+            node.innerHTML = "";
+            node.appendChild(rules);
+        }        
+
+        body.appendChild(node);
         body.appendChild(div);
         
         var html = "";
-        html += '<div style="border:1px solid #555;padding:5px;margin:0;background:#333;color:#fff;">';
+        html += '<div>';
         for (var s=0;s<teacss.sheets.length;s++) {
-            html += 'Build <a style="cursor:pointer;color:#ffa;" onclick="teacss.build.run('+s+')">' 
-                + escape(teacss.sheets[s].src) + '</a><br>'
+            html += 'Build <a onclick="teacss.build.run('+s+')"><pre style="">' 
+                + teacss.sheets[s].src + '</pre></a> '
+                + '<a onclick="this.parentNode.parentNode.removeChild(this.parentNode)">[close]</a><br>'
         }
         html += '</div>';
         
@@ -2104,7 +2306,7 @@ teacss.Canvas.effects = teacss.Canvas.effects || function() {
             return Math.max(lo, Math.min(value, hi));
         }
         this.draw3D(gl.hueSaturationShader,{texture:this.getTexture()},{
-            hue: clamp(-1, hue, 1),
+            hue: hue,
             saturation: clamp(-1, saturation, 1)
         });
         this.setState('texture');
@@ -2193,7 +2395,7 @@ teacss.Canvas.effects = teacss.Canvas.effects || function() {
         return this;
     }
 
-    effects.preview = function () {
+    effects.renderPreview = function () {
         var gl = this.gl;
         this.getTexture().use(0);
         
@@ -2212,7 +2414,8 @@ teacss.Canvas.effects = teacss.Canvas.effects || function() {
             "varying vec2 texCoord;",
             "void main() {",
             "    vec2 tex = mod(texCoord,1.0);",
-            "    gl_FragColor = texture2D(texture, texCoord);",
+            "    vec4 res = texture2D(texture, texCoord);",
+            "    gl_FragColor = vec4(res.rgb*res.a,res.a);",
             "}"
         ].join("\n"));
         
@@ -2221,47 +2424,43 @@ teacss.Canvas.effects = teacss.Canvas.effects || function() {
             .uniforms({scale:[1,1]})
             .drawRect();
     }
-
-    var previewCanvasCache = {};
-    effects.background = function () {
-        var canvas = this;
-        var tea = teacss.tea;
-        var selector = tea.Style.current.getSelector();
-        var id = selector.replace(/[^A-Za-z_0-9-]/g,"_")+"_canvas";
+    
+    effects.preview = function () {
+        Canvas.defaultElement.width = this.width;
+        Canvas.defaultElement.height = this.height;
+        this.renderPreview();
         
-        Canvas.defaultElement.width = canvas.width;
-        Canvas.defaultElement.height = canvas.height;
-        canvas.preview();
-        
+        var doc = teacss.tea.document ? teacss.tea.document : document;
         var element, context;
-        var cached = previewCanvasCache[id];
-        if (cached) {
-            element = cached.element;
-            context = cached.context;
-        } 
-        else {
-            element = document.createElement("canvas");
-            context = element.getContext('2d');
-            previewCanvasCache[id] = { element: element, context : context }
-        }
+        
+        element = doc.createElement("canvas");
+        context = element.getContext('2d');
 
-        element.width = canvas.width;
-        element.height = canvas.height;
+        element.width = this.width;
+        element.height = this.height;
         
         context.drawImage(Canvas.defaultElement,0,0);
         
-        var doc = teacss.tea.document ? teacss.tea.document : document;
-        if (doc.mozSetImageElement) {
-            tea.rule('background-image','-moz-element(#'+id+')');
-            doc.mozSetImageElement(id,element);
-        } else {
-            tea.rule('background-image','-webkit-canvas('+id+')');
-            context = doc.getCSSCanvasContext("2d",id,canvas.width,canvas.height);
-            context.drawImage(element,0,0);
-        }
-        return canvas;
+        this.backgroundCanvas = element;
+        return this;
     }
     
+    effects.background = function (path) {
+        var tea = teacss.tea;
+        var doc = teacss.tea.document ? teacss.tea.document : document;
+        
+        if (doc.mozSetImageElement) {
+            var selector = tea.Style.current.getSelector();
+            var id = selector.replace(/[^A-Za-z_0-9-]/g,"_")+"_canvas";
+            var element = this.backgroundCanvas;
+            
+            tea.rule('background-image:-moz-element(#'+id+')');
+            doc.mozSetImageElement(id,element);
+        } else {
+            tea.rule('background-image:url('+this.toDataURL()+')');
+        }
+        return this;
+    }
     return effects;
 }();
 window.Shader = window.Shader || (function() {
@@ -2546,5 +2745,5 @@ window.Texture = window.Texture || (function() {
     return Texture;
 })();;
 {
-    teacss.update();
-}
+        teacss.update();
+    }

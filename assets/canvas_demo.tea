@@ -6,15 +6,12 @@ Script {
         // we create ui only first time
         if (!window.canvas_live_flag) {
             window.canvas_live_flag = true;
-        
             // parameters common for all colorpickers
             var common = {flat:true,width:355,height:177,change:teacss.update,margin:'5px 0 0 0'};
-    
             // save current file path for build function in button click handler
             var path = "assets/canvas_demo.tea";
             var ui = teacss.ui;
             var $ = teacss.jQuery;
-    
             // create ui panel with button and pickers
             window.canvas_live = ui.panel({
                 width: '100%',
@@ -29,7 +26,6 @@ Script {
                                     var css = "";
                                     var that = teacss.tea.Style;
                                     for (var i=0;i<that.rules.length;i++) css += that.rules[i].getOutput();                            
-            
                                     // display all the data
                                     $("#canvas_display").html("")
                                         .append(
@@ -42,15 +38,12 @@ Script {
                             })
                         }
                     }),
-    
                     // pickers
                     window.picker1 = ui.colorPicker($.extend(common,{value:"#77aeff"})),
                     window.picker2 = ui.colorPicker($.extend(common,{value:"#705551"}))
                 ]
             });
-    
-            // some hack to embed #teacss-ui layer into the page
-            // though it's an easy one
+            // some hack to embed #teacss-ui layer into the page, though it's an easy one
             $(function(){
                 $("<div id='teacss-layer'>")
                     .addClass("teacss-ui")

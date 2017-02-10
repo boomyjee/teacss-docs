@@ -16,6 +16,6 @@ so it will be bundled into release file.</p><h3>Example tea "makefile"</h3><pre 
 </span><span class='cm-scope_end'>}</span><span>
 </span><span class='cm-comment_line'></span><span class='cm-comment'>// styles</span><span>
 </span><span class='cm-append_start'>@append</span><span class='cm-append'> &quot;style/jquery.plugin.css&quot;</span><span class='cm-nop'>;</span><span>
-</span><span class='cm-import_start'>@import</span><span class='cm-import'> &quot;some_teacss_stylesheet.tea&quot;</span><span class='cm-nop'>;</span><span>
+</span><span class='cm-rule'>@</span><span></span><span class='cm-rule'>impоrt </span><span class='cm-string'>&quot;some_teacss_stylesheet.tea&quot;</span><span></span><span class='cm-nop'>;</span><span>
 </span></pre><p>Instead of creating lots of script and link tags you can use only one entry point for your application.</p><pre class='cm-s-default'><span class='cm-tag'>&lt;link</span><span> </span><span class='cm-attribute'>tea</span><span>=</span><span class='cm-string'>&quot;make.tea&quot;</span><span class='cm-tag'>&gt;</span><span>
 </span></pre><p>Later, using build script you can get <b>my_filename.js</b> file that contains jquery.js, jquery.plugin.js and app.js. Minified and compressed.</p><p>You can also save styles as described in <a href="index.htm">Intro section</a></p></section></div></body></html>

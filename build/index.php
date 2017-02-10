@@ -3,7 +3,7 @@
 <head>
     <title>Build docs</title>
     <link tea="make.tea">
-    <script src="http://code.jquery.com/jquery-1.7.2.js"></script>
+    <script src="//code.jquery.com/jquery-1.7.2.js"></script>
     <script src="../assets/teacss/teacss.js"></script>
     <script>
         teacss.buildCallback = function (files) {
