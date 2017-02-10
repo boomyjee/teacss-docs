@@ -33,5 +33,6 @@
     ?>
 </head>
 <body>
+    <h1>Build page for teacss-docs</h1>
 </body>
 </html>
